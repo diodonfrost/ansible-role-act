@@ -1,0 +1,58 @@
+name: molecule
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: '0 18 * * sun'
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: ${{ matrix.image }} act ${{ matrix.act_version }}
+    runs-on: ubuntu-latest
+    env:
+      docker_namespace: ghcr.io/diodonfrost
+    strategy:
+      fail-fast: false
+      matrix:
+        image:
+          - almalinux:10
+          - rockylinux:9
+          - amazonlinux:2023
+          - fedora:43
+          - debian:13
+          - ubuntu:26.04
+          - ubuntu:24.04
+          - archlinux:latest
+          - alpine:latest
+        act_version:
+          - latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python 3.13
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+
+      - name: Install Molecule
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+
+      - name: Test Ansible role
+        run: molecule test
+        env:
+          namespace: ${{ env.docker_namespace }}
+          image: ansible-${{ matrix.image }}
+          act_version: ${{ matrix.act_version }}
+
+      - name: Test Ansible role with check_mode enable
+        run: molecule check
+        env:
+          namespace: ${{ env.docker_namespace }}
+          image: ansible-${{ matrix.image }}
+          act_version: ${{ matrix.act_version }}
