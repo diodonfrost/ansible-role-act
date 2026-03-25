@@ -1,0 +1,56 @@
+---
+# tasks file for install act on Windows system
+
+- name: Windows | Get the latest published full release for the repository
+  ansible.windows.win_uri:
+    url: https://api.github.com/repos/nektos/act/releases/latest
+    return_content: yes
+    headers:
+      user-agent: Mozilla/5.0
+  register: act_index
+  check_mode: no
+  when: act_version == "latest"
+
+- name: Windows | Filter the latest act version
+  ansible.builtin.set_fact:
+    act_version_to_install: "{{ (act_index.content | from_json).tag_name }}"
+  when: act_version == 'latest'
+
+- name: Windows | Use the specified act version when latest var is not define
+  ansible.builtin.set_fact:
+    act_version_to_install: "{{ act_version }}"
+  when: act_version != 'latest'
+
+# This task avoids downloading act every time
+- name: Windows | Check if act is present on Windows with the right version
+  ansible.windows.win_command: act --version
+  register: act_installed_version
+  ignore_errors: true
+  changed_when: false
+  failed_when: false
+
+- name: Windows | Create act folder
+  ansible.windows.win_file:
+    path: "{{ act_path }}"
+    state: directory
+
+- name: Windows | Download act
+  ansible.windows.win_get_url:
+    url: "https://github.com/nektos/act/releases/download/{{ act_version_to_install }}/act_Windows_{{ _base_arch[ansible_facts['architecture']] | default('x86_64') }}.zip"
+    dest: "%TEMP%\\act.zip"
+    force: yes
+  when: >-
+    act_version_to_install | regex_replace('^v', '')
+    not in (act_installed_version.stdout | default('empty'))
+
+- name: Windows | Unzip act
+  community.windows.win_unzip:
+    src: "%TEMP%\\act.zip"
+    dest: "{{ act_path }}"
+  when: >-
+    act_version_to_install | regex_replace('^v', '')
+    not in (act_installed_version.stdout | default('empty'))
+
+- name: Windows | Add act to PATH
+  ansible.windows.win_path:
+    elements: "{{ act_path }}"

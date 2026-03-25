@@ -1,0 +1,15 @@
+---
+# tasks file for ansible-role-act
+
+- name: Include OS specific variables.
+  ansible.builtin.include_vars: "{{ ansible_facts['system'] }}.yml"
+
+- name: Install Act
+  ansible.builtin.include_tasks: "{{ lookup('ansible.builtin.first_found', params) }}"
+  vars:
+    params:
+      files:
+        - "setup-{{ ansible_facts['system'] }}.yml"
+        - "setup-Linux-Unix.yml"
+      paths:
+        - "tasks"

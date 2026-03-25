@@ -1,0 +1,55 @@
+galaxy_info:
+  role_name: act
+  author: diodonfrost
+  company: diodonfrost
+  description: Ansible role for installing act on a large number of os
+  license: license Apache
+
+  min_ansible_version: "2.5"
+
+  platforms:
+    - name: EL
+      versions:
+        - all
+    - name: Fedora
+      versions:
+        - all
+    - name: Debian
+      versions:
+        - all
+    - name: Ubuntu
+      versions:
+        - all
+    - name: Amazon
+      versions:
+        - all
+    - name: opensuse
+      versions:
+        - all
+    - name: SLES
+      versions:
+        - all
+    - name: ArchLinux
+      versions:
+        - all
+    - name: Alpine
+      versions:
+        - all
+    - name: Gentoo
+      versions:
+        - all
+    - name: MacOSX
+      versions:
+        - all
+    - name: Windows
+      versions:
+        - all
+
+  galaxy_tags:
+    - system
+    - packaging
+    - github
+    - actions
+    - act
+
+dependencies: []

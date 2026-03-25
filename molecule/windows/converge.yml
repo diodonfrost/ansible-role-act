@@ -1,0 +1,6 @@
+---
+- name: Converge
+  hosts: all
+  roles:
+    - role: diodonfrost.act
+      act_version: "{{ lookup('env', 'act_version') | default('latest', true) }}"

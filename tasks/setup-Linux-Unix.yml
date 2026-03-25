@@ -1,0 +1,39 @@
+---
+# tasks file for install act on Linux system
+
+- name: Linux/Unix | Get the latest published full release for the repository
+  ansible.builtin.uri:
+    url: https://api.github.com/repos/nektos/act/releases/latest
+    return_content: yes
+  register: act_index
+  check_mode: no
+  when: act_version == "latest"
+
+- name: Linux/Unix | Filter the latest act version
+  ansible.builtin.set_fact:
+    act_version_to_install: "{{ (act_index.content | from_json).tag_name }}"
+  when: act_version == 'latest'
+
+- name: Linux/Unix | Use the specified act version when latest var is not define
+  ansible.builtin.set_fact:
+    act_version_to_install: "{{ act_version }}"
+  when: act_version != 'latest'
+
+# This task avoids downloading act every time
+- name: Linux/Unix | Check if act is present with the right version
+  ansible.builtin.command: "{{ act_path }}act --version"
+  register: act_installed_version
+  ignore_errors: true
+  changed_when: false
+  failed_when: false
+
+- name: Linux/Unix | Install act
+  ansible.builtin.unarchive:
+    src: "https://github.com/nektos/act/releases/download/{{ act_version_to_install }}/act_Linux_{{ _base_arch[ansible_facts['architecture']] | default('x86_64') }}.tar.gz"
+    dest: "{{ act_path }}"
+    remote_src: yes
+    include:
+      - act
+  when: >-
+    act_version_to_install | regex_replace('^v', '')
+    not in (act_installed_version.stdout | default('empty'))

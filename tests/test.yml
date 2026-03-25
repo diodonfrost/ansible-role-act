@@ -1,0 +1,7 @@
+---
+- name: Test act role
+  hosts: localhost
+  become: true
+  remote_user: root
+  roles:
+    - role: diodonfrost.act

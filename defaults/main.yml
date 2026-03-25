@@ -1,0 +1,11 @@
+---
+# defaults file for ansible-role-act
+
+# Define act version to install
+# Possible values: https://api.github.com/repos/nektos/act/releases
+# Default: latest
+act_version: latest
+
+# Define where to install act binary
+# Default: use local system path defined in Ansible vars/*.yml
+act_path: "{{ _act_default_path }}"
