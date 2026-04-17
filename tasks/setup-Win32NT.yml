@@ -63,6 +63,7 @@
     force: yes
     checksum: "{{ act_archive_sha256 if act_verify_checksum | bool else omit }}"
     checksum_algorithm: sha256
+  check_mode: false
   when: >-
     act_version_to_install | regex_replace('^v', '')
     not in (act_installed_version.stdout | default('empty'))
