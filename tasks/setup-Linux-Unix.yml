@@ -27,9 +27,19 @@
   changed_when: false
   failed_when: false
 
+- name: Linux/Unix | Download act archive
+  ansible.builtin.get_url:
+    url: "https://github.com/nektos/act/releases/download/{{ act_version_to_install }}/act_Linux_{{ _base_arch[ansible_facts['architecture']] | default('x86_64') }}.tar.gz"
+    dest: "/tmp/act_Linux_{{ _base_arch[ansible_facts['architecture']] | default('x86_64') }}.tar.gz"
+    mode: "0644"
+    checksum: "{{ ('sha256:https://github.com/nektos/act/releases/download/' ~ act_version_to_install ~ '/checksums.txt') if act_verify_checksum | bool else omit }}"
+  when: >-
+    act_version_to_install | regex_replace('^v', '')
+    not in (act_installed_version.stdout | default('empty'))
+
 - name: Linux/Unix | Install act
   ansible.builtin.unarchive:
-    src: "https://github.com/nektos/act/releases/download/{{ act_version_to_install }}/act_Linux_{{ _base_arch[ansible_facts['architecture']] | default('x86_64') }}.tar.gz"
+    src: "/tmp/act_Linux_{{ _base_arch[ansible_facts['architecture']] | default('x86_64') }}.tar.gz"
     dest: "{{ act_path }}"
     remote_src: yes
     include:
@@ -37,3 +47,8 @@
   when: >-
     act_version_to_install | regex_replace('^v', '')
     not in (act_installed_version.stdout | default('empty'))
+
+- name: Linux/Unix | Remove downloaded archive
+  ansible.builtin.file:
+    path: "/tmp/act_Linux_{{ _base_arch[ansible_facts['architecture']] | default('x86_64') }}.tar.gz"
+    state: absent

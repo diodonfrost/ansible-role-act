@@ -34,11 +34,35 @@
     path: "{{ act_path }}"
     state: directory
 
+- name: Windows | Get act checksums file
+  ansible.windows.win_uri:
+    url: "https://github.com/nektos/act/releases/download/{{ act_version_to_install }}/checksums.txt"
+    return_content: yes
+    headers:
+      user-agent: Mozilla/5.0
+  register: act_checksums
+  check_mode: no
+  when:
+    - act_verify_checksum | bool
+    - act_version_to_install | regex_replace('^v', '') not in (act_installed_version.stdout | default('empty'))
+
+- name: Windows | Extract act archive checksum
+  ansible.builtin.set_fact:
+    act_archive_sha256: >-
+      {{ (act_checksums.content.splitlines()
+          | select('search', 'act_Windows_' ~ (_base_arch[ansible_facts['architecture']] | default('x86_64')) ~ '\.zip$')
+          | first).split()[0] }}
+  when:
+    - act_verify_checksum | bool
+    - act_version_to_install | regex_replace('^v', '') not in (act_installed_version.stdout | default('empty'))
+
 - name: Windows | Download act
   ansible.windows.win_get_url:
     url: "https://github.com/nektos/act/releases/download/{{ act_version_to_install }}/act_Windows_{{ _base_arch[ansible_facts['architecture']] | default('x86_64') }}.zip"
     dest: "%TEMP%\\act.zip"
     force: yes
+    checksum: "{{ act_archive_sha256 if act_verify_checksum | bool else omit }}"
+    checksum_algorithm: sha256
   when: >-
     act_version_to_install | regex_replace('^v', '')
     not in (act_installed_version.stdout | default('empty'))

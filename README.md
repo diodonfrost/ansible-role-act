@@ -26,6 +26,11 @@ act_version: latest
 # Define where to install act binary
 # Default: use local system path defined in Ansible vars/*.yml
 act_path: "{{ _act_default_path }}"
+
+# Verify sha256 checksum of the downloaded act archive against the
+# checksums.txt file published alongside each release.
+# Default: true
+act_verify_checksum: true
 ```
 
 ## Dependencies
